@@ -65,22 +65,29 @@ class Chef
 
       alias :invalid? :errors?
 
-      # Iterates over the run list items, expanding roles. After this,
+      # Recurses over the run list items, expanding roles. After this,
       # +recipes+ will contain the fully expanded recipe list
-      def expand
-        @run_list_items.each_with_index do |entry, index|
+      def expand(items=nil)
+        if items == nil
+          expand(@run_list_items)
+        else
+          if items.empty?
+            return
+          end
+          entry = items.pop
+          expand(items)
+        
           case entry.type
           when :recipe
             recipes << entry.name unless recipes.include?(entry.name)
           when :role
             if role = inflate_role(entry.name)
+              expand(role.run_list.run_list_items)
               apply_role_attributes(role)
-              @run_list_items.insert(index + 1, *role.run_list.run_list_items)
             end
           end
         end
-      end
-
+      end  
       # Fetches and inflates a role
       # === Returns
       # Chef::Role  in most cases
