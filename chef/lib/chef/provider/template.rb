@@ -36,18 +36,26 @@ class Chef
       end
 
       def action_create
-        render_with_context(template_location) do |rendered_template|
-          rendered(rendered_template)
-          if ::File.exist?(@new_resource.path) && content_matches?
-            Chef::Log.debug("#{@new_resource} content has not changed.")
-            set_all_access_controls(@new_resource.path)
-          else
-            Chef::Log.info("Writing updated content for #{@new_resource} to #{@new_resource.path}")
-            backup
-            set_all_access_controls(rendered_template.path)
-            FileUtils.mv(rendered_template.path, @new_resource.path)
-            @new_resource.updated = true
+        begin
+          render_with_context(template_location) do |rendered_template|
+            rendered(rendered_template)
+            if ::File.exist?(@new_resource.path) && content_matches?
+              Chef::Log.debug("#{@new_resource} content has not changed.")
+              set_all_access_controls(@new_resource.path)
+            else
+              Chef::Log.info("Writing updated content for #{@new_resource} to #{@new_resource.path}")
+              backup
+              set_all_access_controls(rendered_template.path)
+              FileUtils.mv(rendered_template.path, @new_resource.path)
+              @new_resource.updated = true
+            end
           end
+        end
+      rescue Chef::Exceptions::FileNotFound => e
+        if @new_resource.ignore_missing
+          Chef::Log.debug("Template file #{@new_resource.source} not found locally or in cookbook files, ignoring")
+        else
+          raise e
         end
       end
 
