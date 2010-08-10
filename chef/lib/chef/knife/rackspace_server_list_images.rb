@@ -21,9 +21,9 @@ require 'json'
 
 class Chef
   class Knife
-    class RackspaceServerList < Knife
+    class RackspaceServerListImage < Knife
 
-      banner "knife rackspace server list (options)"
+      banner "knife rackspace server list images (options)"
 
       def h
         @highline ||= HighLine.new
@@ -40,22 +40,16 @@ class Chef
           :rackspace_username => Chef::Config[:knife][:rackspace_api_username] 
         )
 
-        flavor_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
         image_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
 
-        connection.list_flavors.body['flavors'].map { |i| flavor_map[i] }
         connection.list_images.body['images'].map { |i| image_map[i] }
 
-        server_list = [ h.color('ID', :bold), h.color('Name', :bold), h.color('Public IP', :bold), h.color('Private IP', :bold), h.color('Flavor', :bold), h.color('Image', :bold) ]
-        connection.servers.all.each do |server|
-          server_list << server.id.to_s
-          server_list << server.name
-          server_list << server.addresses["public"][0]
-          server_list << server.addresses["private"][0]
-          server_list << flavor_map[server.flavor_id]
-          server_list << image_map[server.image_id]
+        image_list = [ h.color('Image', :bold), h.color('ID', :bold) ]
+        image_map.each do |image,id|
+          server_list << image
+          server_list << id
         end
-        puts h.list(server_list, :columns_across, 6)
+        puts h.list(server_list, :columns_across, 2)
 
       end
     end

@@ -29,21 +29,19 @@ class Chef
         :short => "-f FLAVOR",
         :long => "--flavor FLAVOR",
         :description => "The flavor of server",
-        :proc => Proc.new { |f| f.to_i },
         :default => 1
 
       option :image,
         :short => "-i IMAGE",
         :long => "--image IMAGE",
         :description => "The image of the server",
-        :proc => Proc.new { |i| i.to_i },
         :default => 14362
 
       option :server_name,
         :short => "-N NAME",
         :long => "--server-name NAME",
         :description => "The server name",
-        :default => "wtf"
+        :required => true
 
       option :api_key,
         :short => "-K KEY",
@@ -72,10 +70,16 @@ class Chef
           :rackspace_username => Chef::Config[:knife][:rackspace_api_username] 
         )
 
+        flavor_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
+        image_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
+        connection.list_flavors.body['flavors'].map { |i| flavor_map[i] }
+        connection.list_images.body['images'].map { |i| image_map[i] }
+
         server = connection.servers.new
-       
-        server.flavor_id = config[:flavor]
-        server.image_id = config[:image]
+
+        server.flavor_id = Integer config[:flavor] rescue server.flavor_id = flavor_map[config[:flavor]]
+        server.image_id = Integer config[:image] rescue server.image_id = image_map[config[:image]]
+            
         server.name = config[:server_name]
         server.personality = [
           { 
