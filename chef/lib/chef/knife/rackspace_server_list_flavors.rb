@@ -32,26 +32,21 @@ class Chef
       def run 
         require 'fog'
         require 'highline'
-        require 'net/ssh/multi'
-        require 'readline'
 
         connection = Fog::Rackspace::Servers.new(
           :rackspace_api_key => Chef::Config[:knife][:rackspace_api_key],
           :rackspace_username => Chef::Config[:knife][:rackspace_api_username] 
         )
 
-        flavor_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
-        image_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
 
-        connection.list_flavors.body['flavors'].map { |i| flavor_map[i] }
-        connection.list_images.body['images'].map { |i| image_map[i] }
+        flavor_pairs = Array.new
+        connection.list_flavors.body['flavors'].each do |flavor|
+          flavor_pairs << [ flavor['name'], flavor['id'].to_s ]
+        end 
 
-        flavor_list = [ h.color('Flavor', :bold), h.color('ID', :bold) ]
-        flavor_map.each do |flavor,id|
-          server_list << flavor
-          server_list << id
-        end
-        puts h.list(server_list, :columns_across, 2)
+        flavor_pairs.sort! { |x,y| x[1] <=> y[1] }
+        flavor_pairs.insert(0, h.color('Image', :bold), h.color('ID', :bold))
+        puts h.list(flavor_pairs.flatten, :columns_across, 2)
 
       end
     end

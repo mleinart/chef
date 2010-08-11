@@ -70,8 +70,8 @@ class Chef
           :rackspace_username => Chef::Config[:knife][:rackspace_api_username] 
         )
 
-        flavor_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
-        image_map = Hash.new { |h,k| h[k["id"]] = k["name"] }
+        flavor_map = Hash.new { |h,k| h[k["name"]] = k["id"] }
+        image_map = Hash.new { |h,k| h[k["name"]] = k["id"] }
         connection.list_flavors.body['flavors'].map { |i| flavor_map[i] }
         connection.list_images.body['images'].map { |i| image_map[i] }
 
