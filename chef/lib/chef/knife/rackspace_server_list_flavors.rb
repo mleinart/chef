@@ -45,7 +45,7 @@ class Chef
         end 
 
         flavor_pairs.sort! { |x,y| x[1] <=> y[1] }
-        flavor_pairs.insert(0, h.color('Image', :bold), h.color('ID', :bold))
+        flavor_pairs.insert(0, h.color('Flavor', :bold), h.color('ID', :bold))
         puts h.list(flavor_pairs.flatten, :columns_across, 2)
 
       end

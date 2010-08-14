@@ -41,7 +41,10 @@ class Chef
         :short => "-N NAME",
         :long => "--server-name NAME",
         :description => "The server name",
-        :required => true
+#XXX This shouldn't have a default option and should instead be required
+# Fix this once CHEF-1563 is merged
+#        :required => true
+        :default => "test"
 
       option :api_key,
         :short => "-K KEY",
@@ -70,16 +73,27 @@ class Chef
           :rackspace_username => Chef::Config[:knife][:rackspace_api_username] 
         )
 
-        flavor_map = Hash.new { |h,k| h[k["name"]] = k["id"] }
-        image_map = Hash.new { |h,k| h[k["name"]] = k["id"] }
-        connection.list_flavors.body['flavors'].map { |i| flavor_map[i] }
-        connection.list_images.body['images'].map { |i| image_map[i] }
+        flavor_map = Array.new
+        image_map = Array.new
+
+        connection.list_flavors.body['flavors'].each { |f| flavor_map << [f['name'],f['id']] }
+        connection.list_images.body['images'].each { |i| image_map << [i['name'],i['id']] }
+        flavor_map = Hash[*flavor_map.flatten]
+        image_map = Hash[*image_map.flatten] 
 
         server = connection.servers.new
+        
+        server.flavor_id = Integer(config[:flavor]).to_i rescue server.flavor_id = flavor_map[config[:flavor]]
+        server.image_id = Integer(config[:image]).to_i rescue server.image_id = image_map[config[:image]]
 
-        server.flavor_id = Integer config[:flavor] rescue server.flavor_id = flavor_map[config[:flavor]]
-        server.image_id = Integer config[:image] rescue server.image_id = image_map[config[:image]]
-            
+        if not server.flavor_id
+          puts "Error, unable to parse server Flavor option. See 'knife rackspace server list flavors' for help"
+          exit(2)
+        end
+        if not server.flavor_id
+          puts "Error, unable to parse server Flavor option. See 'knife rackspace server list images' for help"
+          exit(2)
+        end
         server.name = config[:server_name]
         server.personality = [
           { 
