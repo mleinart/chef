@@ -39,14 +39,14 @@ class Chef
         )
 
 
-        flavor_pairs = Array.new
-        connection.list_flavors.body['flavors'].each do |flavor|
-          flavor_pairs << [ flavor['name'], flavor['id'].to_s ]
+        flavor_tuples = Array.new
+        connection.list_flavors_detail.body['flavors'].each do |flavor|
+          flavor_tuples << [ '"' + flavor['name'] + '"', flavor['id'].to_s, flavor['ram'].to_s + "MB", flavor['disk'].to_s + "GB" ]
         end 
 
-        flavor_pairs.sort! { |x,y| x[1] <=> y[1] }
-        flavor_pairs.insert(0, h.color('Flavor', :bold), h.color('ID', :bold))
-        puts h.list(flavor_pairs.flatten, :columns_across, 2)
+        flavor_tuples.sort! { |x,y| x[1] <=> y[1] }
+        flavor_tuples.insert(0, h.color('Name', :bold), h.color('ID', :bold), h.color('Ram', :bold), h.color('Disk', :bold))
+        puts h.list(flavor_tuples.flatten, :columns_across, 4)
 
       end
     end

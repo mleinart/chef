@@ -38,14 +38,14 @@ class Chef
           :rackspace_username => Chef::Config[:knife][:rackspace_api_username] 
         )
 
-        image_pairs = Array.new
-        connection.list_images.body['images'].each do |image|
-          image_pairs << [ image['name'], image['id'].to_s ]
+        image_tuples = Array.new
+        connection.list_images_detail.body['images'].each do |image|
+          image_tuples << [ '"' + image['name'] + '"', image['id'].to_s, image['serverId'] ? "Yes" : "No" ]
         end 
 
-        image_pairs.sort!
-        image_pairs.insert(0, h.color('Image', :bold), h.color('ID', :bold))
-        puts h.list(image_pairs.flatten, :columns_across, 2)
+        image_tuples.sort!
+        image_tuples.insert(0, h.color('Name', :bold), h.color('ID', :bold), h.color('Custom', :bold))
+        puts h.list(image_tuples.flatten, :columns_across, 3)
 
       end
     end
