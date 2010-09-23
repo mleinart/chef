@@ -51,7 +51,7 @@ class Chef
     include Chef::Mixin::Deprecation
     
     attr_accessor :params, :provider, :updated, :allowed_actions, :run_context, :cookbook_name, :recipe_name, :enclosing_provider
-    attr_accessor :source_line
+    attr_accessor :source_line, :retries
     attr_reader :resource_name, :not_if_args, :only_if_args
 
     # Each notify entry is a resource/action pair, modeled as an
@@ -70,6 +70,7 @@ class Chef
       @updated = false
       @supports = {}
       @ignore_failure = false
+      @retries = 0
       @not_if = nil
       @not_if_args = {}
       @only_if = nil
@@ -171,6 +172,14 @@ class Chef
         :ignore_failure,
         arg,
         :kind_of => [ TrueClass, FalseClass ]
+      )
+    end
+    
+    def retries(arg=nil)
+      set_or_return(
+        :retries,
+        arg,
+        :kind_of => Integer
       )
     end
     

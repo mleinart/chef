@@ -175,7 +175,7 @@ describe Chef::Resource do
       expected_keys = [ :only_if, :allowed_actions, :params, :provider, 
                         :updated, :before, :not_if, :supports, 
                         :notifies_delayed, :notifies_immediate, :noop,
-                        :ignore_failure, :name, :source_line, :action,
+                        :ignore_failure, :retries, :name, :source_line, :action,
                         :not_if_args, :only_if_args
                       ]
       (hash.keys - expected_keys).should == []
@@ -220,6 +220,17 @@ describe Chef::Resource do
       @resource.epic_fail.should == true
     end
   end
+
+  describe "retries" do
+    it "should default to not retrying if a provider fails for a resource" do
+      @resource.retries.should == 0
+    end
+
+    it "should allow you to set how many retries a provider should attempt after a failure" do
+      @resource.retries(2)
+      @resource.retries.should == 2
+    end
+  end 
   
   describe "setting the base provider class for the resource" do
     
